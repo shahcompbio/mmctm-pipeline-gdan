@@ -1,32 +1,11 @@
----
-jupyter:
-  jupytext:
-    formats: ipynb,md
-    text_representation:
-      extension: .md
-      format_name: markdown
-      format_version: '1.3'
-      jupytext_version: 1.14.5
-  kernelspec:
-    display_name: Python 3.7.12 64-bit (conda)
-    language: python
-    name: python3712jvsc74a57bd0dc0fe05456373cce17991fe9e2e9264df4f4d1e972d77814a9700f21c9e7a8e2
----
-
-# Settings
-
-```python
 import matplotlib
 import pandas as pd
 import numpy as np
 import scipy.spatial as spatial
 import matplotlib.pyplot as plt
 import seaborn as sns
-```
+from argparse import ArgumentParser
 
-## modules
-
-```python
 def get_cosmic(cosmic_path, debug=False):
     """Get COSMIC data as melted dataframe
     """
@@ -91,13 +70,13 @@ def draw_heatmap_from_csdf(csdf, xlabel="previous SNV signature", ylabel="curren
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     
-def get_sig_vs_cosmic_csdf(var_path, vartype="SNV"):
+def get_sig_vs_cosmic_csdf(var_path, snv_cosmic, indel_cosmic, vartype="SNV"):
     """Get signatures vs COSMIC cosine similarity dataframe
     """
     if vartype == "SNV":
-        cosmic_path = "resources/COSMIC_v3.3.1_SBS_GRCh38.txt"
+        cosmic_path = snv_cosmic
     elif vartype == "INDEL":
-        cosmic_path = "resources/COSMIC_v3.3_ID_GRCh37.txt"
+        cosmic_path = indel_cosmic
     else: print(f"ERROR: vartype={vartype}"); return None
     cosmic = get_cosmic(cosmic_path)
 
@@ -109,103 +88,34 @@ def get_sig_vs_cosmic_csdf(var_path, vartype="SNV"):
                             index=[snv_topic for snv_topic in current.topic.unique()],
                             columns=[snv_topic for snv_topic in cosmic.topic.unique()])
     return current_vs_cosmic_df
-```
 
-```python
-sv_colors = {
-    'del:<10kb': '#d6e6f4',
-    'del:10kb-100kb': '#abd0e6',
-    'del:100kb-1Mb': '#6aaed6',
-    'del:1Mb-10Mb': '#3787c0',
-    'del:>10Mb': '#105ba4',
 
-    'dup:<10kb': '#fedfc0',
-    'dup:10kb-100kb': '#fdb97d',
-    'dup:100kb-1Mb': '#fd8c3b',
-    'dup:1Mb-10Mb': '#e95e0d',
-    'dup:>10Mb': '#b63c02',
 
-    'inv:<10kb': '#dbf1d6',
-    'inv:10kb-100kb': '#aedea7',
-    'inv:100kb-1Mb': '#73c476',
-    'inv:1Mb-10Mb': '#37a055',
-    'inv:>10Mb': '#0b7734',
+def plot_sv_spectra(sv, title, ax):
+    sv_colors = {
+        'del:<10kb': '#d6e6f4',
+        'del:10kb-100kb': '#abd0e6',
+        'del:100kb-1Mb': '#6aaed6',
+        'del:1Mb-10Mb': '#3787c0',
+        'del:>10Mb': '#105ba4',
 
-    'fbi:<10kb': '#f14432', 
-    'fbi:10kb-100kb': '#bc141a',
+        'dup:<10kb': '#fedfc0',
+        'dup:10kb-100kb': '#fdb97d',
+        'dup:100kb-1Mb': '#fd8c3b',
+        'dup:1Mb-10Mb': '#e95e0d',
+        'dup:>10Mb': '#b63c02',
 
-    'translocation': '#9467BD'
-}
+        'inv:<10kb': '#dbf1d6',
+        'inv:10kb-100kb': '#aedea7',
+        'inv:100kb-1Mb': '#73c476',
+        'inv:1Mb-10Mb': '#37a055',
+        'inv:>10Mb': '#0b7734',
 
-# def plot_sv_spectra(sv, title, ax, sv_colors=sv_colors):
-#     font = matplotlib.font_manager.FontProperties()
-#     font.set_family('monospace')
+        'fbi:<10kb': '#f14432', 
+        'fbi:10kb-100kb': '#bc141a',
 
-#     df = sv.copy()
-#     pat = r'(.+):(.*):(.+):(.+)' # del:100kb-1Mb:0-1:cl
-#     df['sv_type'] = df.index.str.replace(pat, r'\1', regex=True) 
-#     df['sv_length'] = df.index.str.replace(pat, r'\2', regex=True)
-#     df['sv_plot_ix'] = df.index.str.replace(pat, r'\3:\4', regex=True)
-#     # df['sv_length_class'] = df['sv_length'].replace(sv_length_to_class)
-#     df['sv_color_ix'] = df[['sv_type', 'sv_length']].agg(':'.join, axis=1)
-#     df['sv_color_ix'] = df['sv_color_ix'].replace('tr:', 'translocation')
-#     df['index'] = range(df.shape[0])
-    
-#     for mut_type, mut_type_data in df.groupby(['sv_color_ix'], sort=False):
-#         # print(mut_type_data['sv_color_ix'])
-#         ax.bar(data=mut_type_data, x='index', height='probability', label=mut_type,
-#                color=sv_colors[mut_type])
-        
-#     plt.xticks(df['index'], df['sv_plot_ix'], rotation=90, fontproperties=font)
-#     for xtl in ax.xaxis.get_ticklabels():
-#         if ':cl' in xtl.get_text(): 
-#             xtl.set_color('red')
-
-#     plt.xlim((-1, 109))
-#     plt.legend(bbox_to_anchor=(1, 1), loc='upper left')
-    
-#     sns.despine(trim=True)
-
-def plot_sv_terms(title, sv, tag=''):   
-    fig, ax = plt.subplots(1)
-    fig.set_figheight(4)
-    fig.set_figwidth(20)
-    
-    if tag: title += ' ' + tag
-    fig.suptitle(title)
-    
-    plot_sv_spectra(sv, title, fig, ax)
-```
-
-# Data
-
-```python
-props_path = '/juno/work/shah/users/chois7/mmctm/train/results/analysis/model/SNV10_SV9_INDEL8/model_props.tsv'
-sigs_path = '/juno/work/shah/users/chois7/mmctm/train/results/analysis/model/SNV10_SV9_INDEL8/model_sigs.tsv'
-props = pd.read_table(props_path, index_col=0)
-sigs = pd.read_table(sigs_path)
-```
-
-```python
-csdf = get_sig_vs_cosmic_csdf(sigs_path, vartype="SNV")
-draw_heatmap_from_csdf(csdf, xlabel="COSMIC", ylabel="MMCTM", figsize=(12, 5), sort=True, ncols=20)
-```
-
-```python
-csdf = get_sig_vs_cosmic_csdf(sigs_path, vartype="INDEL")
-draw_heatmap_from_csdf(csdf.iloc[:,:20], xlabel="COSMIC", ylabel="MMCTM", figsize=(12, 4.5), sort=True, ncols=20)
-```
-
-```python
-sv.topic.unique().shape[0]
-```
-
-```python
-
-```
-
-```python
-def plot_sv_spectra(sv, title, ax, sv_colors=sv_colors):
+        'translocation': '#9467BD'
+    }
     font = matplotlib.font_manager.FontProperties()
     font.set_family('monospace')
 
@@ -233,17 +143,48 @@ def plot_sv_spectra(sv, title, ax, sv_colors=sv_colors):
     
     sns.despine(trim=True, ax=ax)
     return df
-```
 
-```python
-n_sv_topics = sv.topic.unique().shape[0]
-fig, axes = plt.subplots(n_sv_topics, 1, figsize=(15, 3 * n_sv_topics))
-sv = get_var_sig(sigs_path, vartype='SV')
-for ix, topic in enumerate(sv.topic.unique()):
-    ax = axes[ix]
-    topic_sv = sv[sv['topic']==topic].copy()
-    title = f"SV topic {topic}"
-    ax.set_title(title)
-    df = plot_sv_spectra(topic_sv, title, ax)
-plt.tight_layout()
-```
+def get_args():
+    description = 'Make signature probability QC plots'
+    p = ArgumentParser(description=description)
+
+    p.add_argument('sigs', help='sigs file')
+    p.add_argument('cosmic_snvs', help='cosmic SBS file')
+    p.add_argument('cosmic_indels', help='COSMIC ID file')
+    p.add_argument('out_snvs_plot', help='SNV plot path')
+    p.add_argument('out_indels_plot', help='INDEL plot path')
+    p.add_argument('out_svs_plot', help='SV plot path')
+
+    return p.parse_args()
+
+
+if __name__ == '__main__':
+    args = get_args()
+    sigs_path = args.sigs
+    cosmic_snvs = args.cosmic_snvs
+    cosmic_indels = args.cosmic_indels
+
+    # SNV
+    csdf = get_sig_vs_cosmic_csdf(sigs_path, cosmic_snvs, cosmic_indels, vartype="SNV")
+    draw_heatmap_from_csdf(csdf, xlabel="COSMIC", ylabel="MMCTM", figsize=(12, 5), sort=True, ncols=20)
+    plt.tight_layout()
+    plt.savefig(args.out_snvs_plot)
+
+    # INDEL
+    csdf = get_sig_vs_cosmic_csdf(sigs_path, cosmic_snvs, cosmic_indels, vartype="INDEL")
+    draw_heatmap_from_csdf(csdf, xlabel="COSMIC", ylabel="MMCTM", figsize=(12, 4.5), sort=True, ncols=20)
+    plt.tight_layout()
+    plt.savefig(args.out_indels_plot)
+
+    # SV
+    sv = get_var_sig(sigs_path, vartype='SV')
+    n_sv_topics = sv.topic.unique().shape[0]
+    fig, axes = plt.subplots(n_sv_topics, 1, figsize=(15, 3 * n_sv_topics))
+    for ix, topic in enumerate(sv.topic.unique()):
+        ax = axes[ix]
+        topic_sv = sv[sv['topic']==topic].copy()
+        title = f"SV topic {topic}"
+        ax.set_title(title)
+        df = plot_sv_spectra(topic_sv, title, ax)
+    plt.tight_layout()
+    fig.savefig(args.out_svs_plot)
