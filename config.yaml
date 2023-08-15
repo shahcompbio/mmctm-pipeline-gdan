@@ -1,3 +1,9 @@
 cohort: DLBCL
-log_dir: "logs"
-tmp_dir: "tmp"
+reference_fasta: /juno/work/shah/isabl_data_lake/assemblies/WGS-GRCh38-GDC/human/GRCh38.d1.vd1.fa
+breakpointcalling_metadata: /juno/work/shah/users/chois7/GDAN/DLBCL/paths.WGS-BREAKPOINTCALLING.tsv
+reference_version: GRCh38
+source_dir: /juno/work/shah/users/chois7/mmctm/train/source
+results_dir: results
+samples_file: resources/samples.txt
+log_dir: logs
+intermediate_dir: tmp

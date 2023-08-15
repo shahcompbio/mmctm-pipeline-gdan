@@ -1,1 +1,7 @@
 results/
+.snakemake/
+.vscode/
+logs/
+resources/
+source/
+tmp/
