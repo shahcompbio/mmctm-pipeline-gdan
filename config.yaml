@@ -1,0 +1,3 @@
+cohort: DLBCL
+log_dir: "logs"
+tmp_dir: "tmp"
