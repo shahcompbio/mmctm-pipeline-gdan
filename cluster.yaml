@@ -1,6 +1,6 @@
 __default__:
     time: "40:00"
-    nCPUs: 10
+    nCPUs: 4
     memory: 2
     name: "JOBNAME.{rule}.{wildcards}"
     output: "{config[log_dir]}/{rule}.{wildcards}.out"
@@ -8,5 +8,6 @@ __default__:
     resources: "\"rusage[mem=10] span[hosts=1]\""
 
 train_mmctm:
-    nCPUs: 30
+    nCPUs: 12
     memory: 2
+    resources: "\"rusage[mem=2] span[hosts=1]\""

@@ -7,6 +7,8 @@ results_dir: results
 samples_file: resources/samples.txt
 log_dir: logs
 intermediate_dir: tmp
+cosmic_snvs: resources/COSMIC_v3.3.1_SBS_GRCh38.txt
+cosmic_indels: resources/COSMIC_v3.3_ID_GRCh37.txt
 snv_k: 10
 sv_k: 9
 indel_k: 8
