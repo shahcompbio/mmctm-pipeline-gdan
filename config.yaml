@@ -7,3 +7,6 @@ results_dir: results
 samples_file: resources/samples.txt
 log_dir: logs
 intermediate_dir: tmp
+snv_k: 10
+sv_k: 9
+indel_k: 8

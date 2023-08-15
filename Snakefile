@@ -13,7 +13,8 @@ wildcard_constraints:
 
 rule all:
     input:
-        expand(os.path.join(config['results_dir'], 'analysis/counts/{type}_counts.tsv'), type=types)
+        # expand(os.path.join(config['results_dir'], 'analysis/counts/{type}_counts.tsv'), type=types)
+        os.path.join(config['results_dir'], 'analysis/model/model_props.tsv'),
 
 rule vcf_to_tsv:
     input:
@@ -88,3 +89,38 @@ rule group_counts:
         counts = pd.concat(pieces, axis=1)
         counts.index.name = 'term'
         counts.to_csv(output[0], sep='\t')
+#BSUB -n 30
+#BSUB -o log/{{log_dir}}/{{snv_k}}-{{sv_k}}-{{indel_k}}.out
+#BSUB -e log/{{log_dir}}/{{snv_k}}-{{sv_k}}-{{indel_k}}.err
+#BSUB -J ac_{{snv_k}}-{{sv_k}}-{{indel_k}}
+#BSUB -W 12:00
+rule train_mmctm:
+    input: 
+        snv=os.path.join(config['results_dir'], 'analysis/counts/snv_counts.tsv'),
+        sv=os.path.join(config['results_dir'], 'analysis/counts/sv_counts.tsv'),
+        indel=os.path.join(config['results_dir'], 'analysis/counts/indel_counts.tsv'),
+    output:
+        jld=os.path.join(config['results_dir'], 'analysis/model/model.jld'),
+        cor=os.path.join(config['results_dir'], 'analysis/model/model_cor.tsv'),
+        mean=os.path.join(config['results_dir'], 'analysis/model/model_mean.tsv'),
+        sigs=os.path.join(config['results_dir'], 'analysis/model/model_sigs.tsv'),
+        props=os.path.join(config['results_dir'], 'analysis/model/model_props.tsv'),
+    params:
+        snv_k = config['snv_k'], 
+        sv_k = config['sv_k'], 
+        indel_k = config['indel_k'],
+        modalities = "SNV SV INDEL",
+        threads = 30,
+    singularity: "library://soymintc/julia/mmctm-jl_1.6.5:latest",
+    threads: 30,
+    shell:
+        'julia -p {params.threads} scripts/run_mmctm.jl '
+        '{input.snv} {input.sv} {input.indel} '
+        '-r 1500 -v --progress '
+        '--modality-labels {params.modalities} '
+        '-k {params.snv_k} {params.sv_k} {params.indel_k} '
+        '--model {output.jld} '
+        '--cor {output.cor} '
+        '--mean {output.mean} '
+        '--sigs {output.sigs} '
+        '--props {output.props} '

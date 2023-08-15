@@ -1,4 +1,4 @@
-CLUSTER_CMD=("bsub -n {threads} -R {cluster.resources} -M {cluster.memory} -o {cluster.output} -e {cluster.error} -J {cluster.name} -W {cluster.time}")
+CLUSTER_CMD=("bsub -n {cluster.nCPUs} -R {cluster.resources} -M {cluster.memory} -o {cluster.output} -e {cluster.error} -J {cluster.name} -W {cluster.time}")
 config_yaml=./config.yaml
 cluster_yaml=./cluster.yaml
 
