@@ -1,3 +1,6 @@
+# Author: Tyler Funnell
+# Email: funnellt@mskcc.org
+
 using ArgParse
 using CSV
 using DataFrames
