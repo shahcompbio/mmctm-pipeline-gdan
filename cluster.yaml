@@ -11,3 +11,8 @@ train_mmctm:
     nCPUs: 12
     memory: 2
     resources: "\"rusage[mem=2] span[hosts=1]\""
+
+signature_qc_plots:
+    nCPUs: 1
+    memory: 2
+    resources: "\"rusage[mem=2] span[hosts=1]\""
