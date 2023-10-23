@@ -7,9 +7,13 @@ if not os.path.exists(config['log_dir']): subprocess.run(f'mkdir -p {config["log
 
 samples = [s.strip() for s in open(config['samples_file']).readlines()]
 types = ['snv', 'indel', 'sv']
-snv_ks = [10, 9, 8, 7, 6, 5, 4, 3]
-sv_ks = [9, 8, 7, 5, 4, 3]
-indel_ks = [8, 7, 6, 5, 4, 3]
+
+#snv_ks = [10] #[i for i in range(7, 16)]
+#sv_ks = [10] #[i for i in range(7, 16)]
+#indel_ks = [10] #[i for i in range(7, 16)]
+snv_ks = [i for i in range(7, 16)]
+sv_ks = [i for i in range(7, 16)]
+indel_ks = [i for i in range(7, 16)]
 
 wildcard_constraints:
     type='snv|indel|sv',
@@ -23,13 +27,14 @@ rule all:
         expand(os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model_sigs.SV.png'),
             snv_k=snv_ks, sv_k=sv_ks, indel_k=indel_ks),
 
-rule vcf_to_tsv:
+rule vcf_to_tsv: # only need ref, alt, and two sample columns (although no info extracted from this)
     input:
-        os.path.join(config['source_dir'], 'vcf/{sample}.vcf'),
+        os.path.join(config['source_dir'], 'snv_indel_vcf/{sample}.purple.somatic.filtered.vcf.gz'),
     output:
         snvs=os.path.join(config['intermediate_dir'], 'analysis/process_variants/snv/sample/{sample}.tsv'),
         indels=os.path.join(config['intermediate_dir'], 'analysis/process_variants/indel/sample/{sample}.tsv'),
-    singularity: "docker://amcpherson/mmctm-pythonscripts:v0.1"
+    #singularity: "docker://amcpherson/mmctm-pythonscripts:v0.1",
+    singularity: "~/chois7/singularity/sif/mmctm-pythonscripts-v0.0.2.sif",
     shell: 'python scripts/vcf_to_tsv.py {input} {output.snvs} {output.indels}'
 
 rule sample_snv_counts:
@@ -37,7 +42,8 @@ rule sample_snv_counts:
         tsv=os.path.join(config['intermediate_dir'], 'analysis/process_variants/snv/sample/{sample}.tsv'),
         ref=config['reference_fasta'],
     output: os.path.join(config['intermediate_dir'], 'analysis/counts/snv/sample/{sample}.tsv'),
-    singularity: "docker://amcpherson/mmctm-pythonscripts:v0.1",
+    #singularity: "docker://amcpherson/mmctm-pythonscripts:v0.1",
+    singularity: "~/chois7/singularity/sif/mmctm-pythonscripts-v0.0.2.sif",
     shell: 'python scripts/count_library_snvs.py {input.tsv} {input.ref} {output}'
 
 rule sample_indel_counts:
@@ -47,26 +53,18 @@ rule sample_indel_counts:
     params: ref_version="GRCh38",
     shell: 'python scripts/count_library_indels.py {input} {params.ref_version} {output}' # TODO: add singularity image
 
-
-def _get_sv_input_paths(wildcards):
-    meta_path = config['breakpointcalling_metadata']
-    df = pd.read_table(meta_path)
-    df = df[df['result_type']=='consensus_calls']
-    df = df[df['isabl_sample_id']==wildcards.sample]
-    assert df.shape[0] == 1, df
-    path = df['result_filepath'].tolist()[0]
-    return path
-
 rule complete_svs:
-    input: consensus_calls=_get_sv_input_paths,
-    output: os.path.join(config['intermediate_dir'], 'analysis/process_variants/sv/complete/{sample}.tsv')
-    singularity: "docker://amcpherson/mmctm-pythonscripts:v0.1"
-    shell: 'python scripts/filter_svs.py {input.consensus_calls} {output}'
+    input: bedpe=os.path.join(config['source_dir'], 'rearrangement_bedpe_linx/{sample}.purple.sv.linx.bedpe.tsv'),
+    output: os.path.join(config['intermediate_dir'], 'analysis/process_variants/sv/complete/{sample}.tsv'),
+    #singularity: "docker://amcpherson/mmctm-pythonscripts:v0.1",
+    singularity: "~/chois7/singularity/sif/mmctm-pythonscripts-v0.0.2.sif",
+    shell: 'python scripts/parse_svs.py {input.bedpe} {output}'
 
 rule sv_cluster_annotations:
     input: os.path.join(config['intermediate_dir'], 'analysis/process_variants/sv/complete/{sample}.tsv')
     output: os.path.join(config['intermediate_dir'], 'analysis/process_variants/sv/sample/{sample}.tsv')
-    singularity: "docker://amcpherson/mmctm-rscripts:v0.1"
+    #singularity: "docker://amcpherson/mmctm-rscripts:v0.1"
+    singularity: "~/chois7/singularity/sif/mmctm-rscripts-v0.1.sif"
     shell:
         '''
         Rscript scripts/annotate_clustered_svs.R \
@@ -76,7 +74,8 @@ rule sv_cluster_annotations:
 rule sample_sv_counts:
     input: os.path.join(config['intermediate_dir'], 'analysis/process_variants/sv/sample/{sample}.tsv'),
     output: os.path.join(config['intermediate_dir'], 'analysis/counts/sv/sample/{sample}.tsv'),
-    singularity: "docker://amcpherson/mmctm-pythonscripts:v0.1",
+    #singularity: "docker://amcpherson/mmctm-pythonscripts:v0.1",
+    singularity: "~/chois7/singularity/sif/mmctm-pythonscripts-v0.0.2.sif",
     shell: 'python scripts/count_library_svs.py {input} {output}'
 
 rule group_counts:
@@ -109,14 +108,11 @@ rule train_mmctm:
         sigs=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model_sigs.tsv'),
         props=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model_props.tsv'),
     params:
-        # snv_k = config['snv_k'], 
-        # sv_k = config['sv_k'], 
-        # indel_k = config['indel_k'],
         snv_k = lambda w: w.snv_k, 
         sv_k = lambda w: w.sv_k, 
         indel_k = lambda w: w.indel_k,
         modalities = "SNV SV INDEL",
-    singularity: "library://soymintc/julia/mmctm-jl_1.6.5:latest",
+    singularity: "~/chois7/singularity/sif/julia_1.6.5.sif",
     threads: 12,
     shell:
         'julia -p {threads} scripts/run_mmctm.jl '

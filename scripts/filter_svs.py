@@ -2,7 +2,7 @@ import pandas as pd
 import fire
 
 
-def filter_svs(consensus_calls, output_svs):
+def parse_svs(consensus_calls, output_svs):
     """ Filter SVs using remixt and thresholds.
     """
 
@@ -33,4 +33,4 @@ def filter_svs(consensus_calls, output_svs):
 
 
 if __name__ == '__main__':
-    fire.Fire(filter_svs)
+    fire.Fire(parse_svs)

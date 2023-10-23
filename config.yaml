@@ -1,14 +1,13 @@
-cohort: DLBCL
-reference_fasta: /juno/work/shah/isabl_data_lake/assemblies/WGS-GRCh38-GDC/human/GRCh38.d1.vd1.fa
-breakpointcalling_metadata: /juno/work/shah/users/chois7/GDAN/DLBCL/paths.WGS-BREAKPOINTCALLING.tsv
-reference_version: GRCh38
-source_dir: /juno/work/shah/users/chois7/mmctm/train/source
-results_dir: results
+cohort: BC780
+
+reference_version: GRCh37
+reference_fasta: /juno/work/shah/reference/genomes/GRCh37-lite/GRCh37-lite.fa
+
+source_dir: /juno/work/shah/users/leej39/bc_evolution/BC780
+results_dir: /juno/work/shah/users/chois7/tickets/breast-mmctm/results
+log_dir: /juno/work/shah/users/chois7/tickets/breast-mmctm/logs
+intermediate_dir: /juno/work/shah/users/chois7/tickets/breast-mmctm/tmp
+
 samples_file: resources/samples.txt
-log_dir: logs
-intermediate_dir: tmp
 cosmic_snvs: resources/COSMIC_v3.3.1_SBS_GRCh38.txt
 cosmic_indels: resources/COSMIC_v3.3_ID_GRCh37.txt
-snv_k: 10
-sv_k: 9
-indel_k: 8

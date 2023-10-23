@@ -53,6 +53,9 @@ def count_snvs(snvs, genome):
 
     for idx, row in snvs.iterrows():
         # two flanking bases
+        chrom = row['chrom']
+        if not chrom.startswith('chr'):
+            chrom = 'chr'+chrom
         start = row['pos'] - 2
         end = row['pos'] + 1
 

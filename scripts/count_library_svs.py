@@ -102,6 +102,5 @@ if __name__ == '__main__':
     svs = pd.read_csv(
         argv.svs, sep='\t', dtype={'chrom_1': str, 'chrom_2': str}
     )
-
     counts = count_svs(svs)
     counts.to_csv(argv.counts, sep='\t', header=False)
