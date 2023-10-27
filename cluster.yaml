@@ -9,7 +9,7 @@ __default__:
 
 train_mmctm:
     nCPUs: 12
-    memory: 2
+    memory: 4
     resources: "\"rusage[mem=2] span[hosts=1]\""
 
 signature_qc_plots:
