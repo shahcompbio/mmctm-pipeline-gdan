@@ -11,9 +11,9 @@ types = ['snv', 'indel', 'sv']
 #snv_ks = [10] #[i for i in range(7, 16)]
 #sv_ks = [10] #[i for i in range(7, 16)]
 #indel_ks = [10] #[i for i in range(7, 16)]
-snv_ks = [i for i in range(7, 16)]
-sv_ks = [i for i in range(7, 16)]
-indel_ks = [i for i in range(7, 16)]
+snv_ks = [i for i in range(9, 12)]
+sv_ks = [i for i in range(12, 15)]
+indel_ks = [i for i in range(5, 7)]
 
 wildcard_constraints:
     type='snv|indel|sv',
@@ -50,7 +50,7 @@ rule sample_indel_counts:
     input:
         os.path.join(config['intermediate_dir'], 'analysis/process_variants/indel/sample/{sample}.tsv'),
     output: os.path.join(config['intermediate_dir'], 'analysis/counts/indel/sample/{sample}.tsv'),
-    params: ref_version="GRCh38",
+    params: ref_version=config['reference_version'],
     shell: 'python scripts/count_library_indels.py {input} {params.ref_version} {output}' # TODO: add singularity image
 
 rule complete_svs:
