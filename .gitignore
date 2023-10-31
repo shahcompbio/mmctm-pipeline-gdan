@@ -5,3 +5,5 @@ logs/
 resources/
 source/
 tmp/
+.ipynb_checkpoints/
+SHAH-1580

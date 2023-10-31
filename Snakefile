@@ -13,7 +13,8 @@ types = ['snv', 'indel', 'sv']
 #indel_ks = [10] #[i for i in range(7, 16)]
 snv_ks = [i for i in range(9, 12)]
 sv_ks = [i for i in range(12, 15)]
-indel_ks = [i for i in range(5, 7)]
+#indel_ks = [i for i in range(5, 7)]
+indel_ks = [i for i in range(7, 9)]
 
 wildcard_constraints:
     type='snv|indel|sv',
