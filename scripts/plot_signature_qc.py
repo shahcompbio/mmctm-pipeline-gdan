@@ -90,6 +90,92 @@ def get_sig_vs_cosmic_csdf(var_path, snv_cosmic, indel_cosmic, vartype="SNV"):
     return current_vs_cosmic_df
 
 
+def plot_complex_sv_spectra(sv, title, ax):
+    sv_colors = {
+        "double_minute": "tab:pink",
+        "small_uni_not": "#FFDFA7",
+        "small_uni_amp": "#EEBF90",
+        "small_oligo_not": "#DD9F79",
+        "small_oligo_amp": "#CB8063",
+        "small_multi_not": "#BA604C",
+        "small_multi_amp": "#A94035",
+        "med_uni_not": "#6CC257",
+        "med_uni_amp": "#58AB51",
+        "med_oligo_not": "#44944B",
+        "med_oligo_amp": "#317C44",
+        "med_multi_not": "#1D653E",
+        "med_multi_amp": "#094E38",
+        "large_uni_not": "#7454DD",
+        "large_uni_amp": "#6344C0",
+        "large_oligo_not": "#5334A2",
+        "large_oligo_amp": "#422585",
+        "large_multi_not": "#321567",
+        "large_multi_amp": "#21054A",
+    }
+    font = matplotlib.font_manager.FontProperties()
+    font.set_family('monospace')
+
+    terms = sv.index
+    for svtype, row in sv.iterrows():
+        value = row['value']
+        prob = row['probability']
+        ax.bar(x=[value], height=[prob], color=sv_colors[svtype], label=svtype)
+
+    ax.set_xticks(sv['value'])
+    ax.set_xticklabels(terms, fontproperties=font, rotation=90)
+    for xtl in ax.xaxis.get_ticklabels():
+        if '_amp' in xtl.get_text():
+            xtl.set_color('red')
+
+    ax.set_xlim((0.5, sv.shape[0]+1))
+    ax.legend(bbox_to_anchor=(1, 1), loc='upper left', fontsize=7, ncol=3)
+
+    sns.despine(trim=True, ax=ax)
+    return df
+
+
+def plot_simple_sv_spectra(sv, title, ax):
+    sv_colors = {
+        "simple_del_1": "#B4E3FF",
+        "simple_del_2": "#88B3E9",
+        "simple_del_3": "#5B83D3",
+        "simple_del_4": "#2F53BD",
+        "simple_del_5": "#0223A7",
+        "simple_dup_1": "#FFB5B5",
+        "simple_dup_2": "#E98888",
+        "simple_dup_3": "#D35C5C",
+        "simple_dup_4": "#BC2F2F",
+        "simple_dup_5": "#A60202",
+        "foldback_inv": "tab:orange",
+        "unbalanced_tra": "#D9ABFF",
+        "reciprocal_inv": "#007527",
+        "reciprocal_tra": "#7E11C7",
+        "templated_ins": "#ABFFB5",
+        "line1_ins": "tab:green",
+        "incomplete": "tab:grey",
+    }
+    font = matplotlib.font_manager.FontProperties()
+    font.set_family('monospace')
+
+    terms = sv.index
+    for svtype, row in sv.iterrows():
+        value = row['value']
+        prob = row['probability']
+        ax.bar(x=[value], height=[prob], color=sv_colors[svtype], label=svtype)
+
+    ax.set_xticks(sv['value'])
+    ax.set_xticklabels(terms, fontproperties=font, rotation=90)
+    for xtl in ax.xaxis.get_ticklabels():
+        if '_amp' in xtl.get_text():
+            xtl.set_color('red')
+
+    ax.set_xlim((0.5, sv.shape[0]+1))
+    ax.legend(bbox_to_anchor=(1, 1), loc='upper left', fontsize=7, ncol=2)
+
+    sns.despine(trim=True, ax=ax)
+    return df
+
+
 def plot_sv_spectra(sv, title, ax):
     sv_colors = {
         "simple_del_1": "#B4E3FF",
@@ -161,6 +247,7 @@ def get_args():
     p.add_argument('out_snvs_plot', help='SNV plot path')
     p.add_argument('out_indels_plot', help='INDEL plot path')
     p.add_argument('out_svs_plot', help='SV plot path')
+    p.add_argument('out_svcomplexs_plot', help='SVComplex plot path')
 
     return p.parse_args()
 
@@ -186,7 +273,7 @@ if __name__ == '__main__':
     # SV
     sv = get_var_sig(sigs_path, vartype='SV')
     n_sv_topics = sv.topic.unique().shape[0]
-    fig, axes = plt.subplots(n_sv_topics, 1, figsize=(10, 3 * n_sv_topics))
+    fig, axes = plt.subplots(n_sv_topics, 1, figsize=(6, 3 * n_sv_topics))
     for ix, topic in enumerate(sv.topic.unique()):
         ax = axes[ix]
         topic_sv = sv[sv['topic']==topic].copy()
@@ -195,3 +282,16 @@ if __name__ == '__main__':
         df = plot_sv_spectra(topic_sv, title, ax)
     plt.tight_layout()
     fig.savefig(args.out_svs_plot)
+
+    # SVComplex
+    sv = get_var_sig(sigs_path, vartype='SVComplex')
+    n_sv_topics = sv.topic.unique().shape[0]
+    fig, axes = plt.subplots(n_sv_topics, 1, figsize=(7.5, 3 * n_sv_topics))
+    for ix, topic in enumerate(sv.topic.unique()):
+        ax = axes[ix]
+        topic_sv = sv[sv['topic']==topic].copy()
+        title = f"SV topic {topic}"
+        ax.set_title(title)
+        df = plot_sv_spectra(topic_sv, title, ax)
+    plt.tight_layout()
+    fig.savefig(args.out_svcomplexs_plot)

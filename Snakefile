@@ -11,22 +11,23 @@ types = ['snv', 'indel', 'sv']
 #snv_ks = [10] #[i for i in range(7, 16)]
 #sv_ks = [10] #[i for i in range(7, 16)]
 #indel_ks = [10] #[i for i in range(7, 16)]
-snv_ks = [i for i in range(9, 13)]
-sv_ks = [i for i in range(15, 23)]
+snv_ks = [i for i in range(10, 11)]
+sv_ks = [2, 4, 6, 8]
+svcomplex_ks = [2, 4, 6, 8, 10, 12]
 #indel_ks = [i for i in range(5, 7)]
-indel_ks = [i for i in range(7, 9)]
+indel_ks = [i for i in range(6, 7)]
 
 wildcard_constraints:
-    type='snv|indel|sv',
+    type='snv|indel|sv|svcomplex',
 
 rule all:
     input:
         # expand(os.path.join(config['results_dir'], 'analysis/counts/{type}_counts.tsv'), type=types)
         # os.path.join(config['results_dir'], 'analysis/model/model_props.tsv'),
-        expand(os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model_sigs.tsv'),
-            snv_k=snv_ks, sv_k=sv_ks, indel_k=indel_ks),
-        expand(os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model_sigs.SV.png'),
-            snv_k=snv_ks, sv_k=sv_ks, indel_k=indel_ks),
+        expand(os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_SVComplex{svcomplex_k}_INDEL{indel_k}/model_sigs.tsv'),
+            snv_k=snv_ks, sv_k=sv_ks, svcomplex_k=svcomplex_ks, indel_k=indel_ks),
+        expand(os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_SVComplex{svcomplex_k}_INDEL{indel_k}/model_sigs.SV.png'),
+            snv_k=snv_ks, sv_k=sv_ks, svcomplex_k=svcomplex_ks, indel_k=indel_ks),
 
 rule vcf_to_tsv: # only need ref, alt, and two sample columns (although no info extracted from this)
     input:
@@ -101,26 +102,28 @@ rule train_mmctm:
     input: 
         snv=os.path.join(config['results_dir'], 'analysis/counts/snv_counts.tsv'),
         sv=os.path.join(config['results_dir'], 'analysis/counts/sv_counts.tsv'),
+        svcomplex=os.path.join(config['results_dir'], 'analysis/counts/svcomplex_counts.tsv'),
         indel=os.path.join(config['results_dir'], 'analysis/counts/indel_counts.tsv'),
     output:
-        jld=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model.jld'),
-        cor=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model_cor.tsv'),
-        mean=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model_mean.tsv'),
-        sigs=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model_sigs.tsv'),
-        props=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model_props.tsv'),
+        jld=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_SVComplex{svcomplex_k}_INDEL{indel_k}/model.jld'),
+        cor=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_SVComplex{svcomplex_k}_INDEL{indel_k}/model_cor.tsv'),
+        mean=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_SVComplex{svcomplex_k}_INDEL{indel_k}/model_mean.tsv'),
+        sigs=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_SVComplex{svcomplex_k}_INDEL{indel_k}/model_sigs.tsv'),
+        props=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_SVComplex{svcomplex_k}_INDEL{indel_k}/model_props.tsv'),
     params:
         snv_k = lambda w: w.snv_k, 
         sv_k = lambda w: w.sv_k, 
+        svcomplex_k = lambda w: w.svcomplex_k,
         indel_k = lambda w: w.indel_k,
-        modalities = "SNV SV INDEL",
+        modalities = "SNV SV SVComplex INDEL",
     singularity: "~/chois7/singularity/sif/julia_1.6.5.sif",
     threads: 12,
     shell:
         'julia -p {threads} scripts/run_mmctm.jl '
-        '{input.snv} {input.sv} {input.indel} '
+        '{input.snv} {input.sv} {input.svcomplex} {input.indel} '
         '-r 1500 -v --progress '
         '--modality-labels {params.modalities} '
-        '-k {params.snv_k} {params.sv_k} {params.indel_k} '
+        '-k {params.snv_k} {params.sv_k} {params.svcomplex_k} {params.indel_k} '
         '--model {output.jld} '
         '--cor {output.cor} '
         '--mean {output.mean} '
@@ -136,9 +139,10 @@ rule signature_qc_plots:
         snvs_plot=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model_sigs.SNV.png'),
         indels_plot=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model_sigs.INDEL.png'),
         svs_plot=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model_sigs.SV.png'),
+        svcomplexs_plot=os.path.join(config['results_dir'], 'analysis/model/SNV{snv_k}_SV{sv_k}_INDEL{indel_k}/model_sigs.SVComplex.png'),
     shell: # TODO: add singularity image
         'python scripts/plot_signature_qc.py {input.sigs} '
         '{input.cosmic_snvs} {input.cosmic_indels} '
-        '{output.snvs_plot} {output.indels_plot} {output.svs_plot} '
+        '{output.snvs_plot} {output.indels_plot} {output.svs_plot} {output.svcomplexs_plot}'
 
     
