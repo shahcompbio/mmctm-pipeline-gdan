@@ -14,7 +14,7 @@ cmd="$cmd --use-singularity"
 cmd="$cmd --singularity-args \"--bind /juno --bind /home\""
 cmd="$cmd -p"
 # cmd="$cmd --allowed-rules signature_qc_plots train_mmctm"
-cmd="$cmd --dry-run"
+# cmd="$cmd --dry-run"
 
 echo $cmd
 eval $cmd

@@ -1,12 +1,12 @@
-cohort: BC780
+cohort: SPORE
 
 reference_version: GRCh37
 reference_fasta: /juno/work/shah/reference/genomes/GRCh37-lite/GRCh37-lite.fa
 
-source_dir: /juno/work/shah/users/leej39/bc_evolution/BC780
-results_dir: /juno/work/shah/users/chois7/tickets/breast-mmctm/train/results
-log_dir: /juno/work/shah/users/chois7/tickets/breast-mmctm/train/logs
-intermediate_dir: /juno/work/shah/users/chois7/tickets/breast-mmctm/train/tmp
+source_dir: /juno/work/shah/users/chois7/projects/breast-SPORE/data
+results_dir: /juno/work/shah/users/chois7/tickets/breast-spore-mmctm/train/results
+log_dir: /juno/work/shah/users/chois7/tickets/breast-spore-mmctm/train/logs
+intermediate_dir: /juno/work/shah/users/chois7/tickets/breast-spore-mmctm/train/tmp
 
 samples_file: resources/samples.txt
 cosmic_snvs: resources/COSMIC_v3.3.1_SBS_GRCh38.txt
