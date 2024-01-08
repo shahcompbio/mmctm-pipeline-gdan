@@ -30,7 +30,8 @@ rule all:
 
 rule vcf_to_tsv: # only need ref, alt, and two sample columns (although no info extracted from this)
     input:
-        os.path.join(config['source_dir'], 'snv_indel_vcf/{sample}.purple.somatic.filtered.vcf.gz'),
+        #os.path.join(config['source_dir'], 'snv_indel_vcf/{sample}.purple.somatic.filtered.vcf.gz'),
+        os.path.join(config['source_dir'], 'snv_indel_vcf/{sample}.purple.somatic.vcf.gz'),
     output:
         snvs=os.path.join(config['intermediate_dir'], 'analysis/process_variants/snv/sample/{sample}.tsv'),
         indels=os.path.join(config['intermediate_dir'], 'analysis/process_variants/indel/sample/{sample}.tsv'),
