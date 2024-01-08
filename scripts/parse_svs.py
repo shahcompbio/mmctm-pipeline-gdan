@@ -19,18 +19,25 @@ def parse_svs(consensus_calls, output_svs,
     dst_cols = [
         'chrom_1', 'brk_1', 'chrom_2', 'brk_2', 'homlen', 'brk_dist', 'type'
     ]
-    dtypes = {'chrom1': str, 'chrom2': str}
+    dtypes = {'chrom1': str, 'chrom2': str, 'chr1':str, 'chr2':str}
     try:
         sv = pd.read_table(consensus_calls, dtype=dtypes)
     except OSError:
         sv = pd.read_table(consensus_calls, dtype=dtypes, compression=None)
+    sv = sv.rename(columns = {'chr1':'chrom1', 'chr2':'chrom2', 'pos1':'end1', 'pos2':'end2'})
+    if 'start1' not in sv.columns and 'start2' not in sv.columns:
+        sv['start1'] = sv['end1'] - 1
+        sv['start2'] = sv['end2'] - 1
     if 'chrom2' not in sv.columns:
         write_empty_output(output_svs, dst_cols)
 
     # classify foldback
     type_map = {'DEL':'deletion', 'DUP':'duplication', 't2tINV':'inversion',
                 'h2hINV':'inversion', 'TRA':'translocation'}
-    sv['type'] = sv['svclass'].map(type_map)
+    if 'type' not in sv.columns and 'svclass' in sv.columns:
+        sv['type'] = sv['svclass'].map(type_map)
+    else:
+        sv['type'] = sv['type'].map(type_map)
     sv.loc[
         (sv['type']=='inversion') & (sv['isFoldback']==True),
         'type'
@@ -52,6 +59,7 @@ def parse_svs(consensus_calls, output_svs,
     sv = sv[[
         'chrom1', 'start1', 'chrom2', 'end2', 'homlen', 'brk_dist', 'type'
     ]].drop_duplicates()
+    sv['homlen'] = sv['homlen'].fillna(0)
     sv['start1'] += 1 # 0-based to 1-based
     sv.columns = dst_cols
 
